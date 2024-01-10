@@ -1,0 +1,83 @@
+name: ITD Skuid Pages Sync
+description: Github Action Script to Sync the Skuid Pages between environments
+author: csilva-intakedesk
+branding:
+  icon: terminal
+  color: red
+inputs:
+  LOG_LEVEL:
+    description: Skuid command flag --loglevel. Logging level for this command invocation. Defaults to Error.
+    type: choice
+    default: error
+    options:
+      - trace
+      - debug
+      - info
+      - warn
+      - error
+      - fatal
+  TARGET_USERNAME_ALIAS:
+    description: Skuid command flag --targetusername. Username or alias for the target org; overrides default target org set with SF.
+    type: string
+  MODULES:
+    description: The Skuid command flag --modules. It will default to ITD modules. Should be passed separated by comma if more than one.
+    type: string
+    default: Intake_Modules,Old_Pages,Test-DEV,Verification_Modules
+  SF_AUTH_URL:
+    description: The Salesforce Auth URL
+    type: string
+    required: true
+runs:
+  using: composite
+  steps:
+      - name: Install Salesforce CLI
+        shell: bash
+        run: |
+          npm install -g @salesforce/cli
+          sf --version
+
+      - name: Installing SF Skuid Pages Plugin
+        shell: bash
+        run: |
+          echo y | sf plugins install skuid-sfdx
+          sf plugins
+
+      - name: Environment Login
+        shell: bash
+        run: |
+          sf org login sfdx-url --set-default --sfdx-url-file <(echo "${{ inputs.SF_AUTH_URL }}")
+
+      - name: Syncing Environment Changes
+        shell: bash
+        run: |
+          syncFlags=()
+          if [ ${{ inputs.TARGET_USERNAME_ALIAS }} ]; then
+            syncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
+          fi
+
+          echo "::debug::Syncing the pages with no module."
+
+          sf skuid page pull --nomodule ${syncFlags[@]}
+          sf skuid page push --nomodule ${syncFlags[@]}
+
+          if [ ${{ inputs.MODULES }} ]; then
+            modules=${{ inputs.MODULES }}
+            
+            echo "::debug::Syncing the pages for the modules: $modules"
+
+            for i in $(echo $modules | sed "s/,/ /g")
+            do
+                module=$(echo $i | sed 's/_/ /g')
+                echo "::debug::sf skuid page pull --module=\"${module}\" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}"
+                sf skuid page pull --module="${module}" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}
+                sleep 5
+            done
+
+            for i in $(echo $modules | sed "s/,/ /g")
+            do
+                module=$(echo $i | sed 's/_/ /g')
+                echo "::debug::sf skuid page push --module=\"${module}\" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}"
+                sf skuid page push --module="${module}" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}
+                sleep 5
+            done
+          fi
