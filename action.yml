@@ -51,7 +51,7 @@ runs:
         shell: bash
         run: |
           syncFlags=()
-          if [ ${{ inputs.TARGET_USERNAME_ALIAS }} ]; then
+          if [ ! -z "${{ inputs.TARGET_USERNAME_ALIAS }}" ]; then
             syncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
           fi
 
