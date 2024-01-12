@@ -22,7 +22,6 @@ inputs:
   MODULES:
     description: The Skuid command flag --modules. It will default to ITD modules. Should be passed separated by comma if more than one.
     type: string
-    default: Intake_Modules,Old_Pages,Test-DEV,Verification_Modules
   SF_AUTH_URL:
     description: The Salesforce Auth URL
     type: string
@@ -57,7 +56,6 @@ runs:
 
           echo "::debug::Syncing the pages with no module."
 
-          sf skuid page pull --nomodule ${syncFlags[@]}
           sf skuid page push --nomodule ${syncFlags[@]}
 
           if [ ${{ inputs.MODULES }} ]; then
@@ -68,16 +66,7 @@ runs:
             for i in $(echo $modules | sed "s/,/ /g")
             do
                 module=$(echo $i | sed 's/_/ /g')
-                echo "::debug::sf skuid page pull --module=\"${module}\" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}"
-                sf skuid page pull --module="${module}" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}
-                sleep 5
-            done
-
-            for i in $(echo $modules | sed "s/,/ /g")
-            do
-                module=$(echo $i | sed 's/_/ /g')
                 echo "::debug::sf skuid page push --module=\"${module}\" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}"
                 sf skuid page push --module="${module}" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}
-                sleep 5
             done
           fi
