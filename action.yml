@@ -56,7 +56,7 @@ runs:
 
           echo "::debug::Syncing the pages with no module."
 
-          sf skuid page push --nomodule ${syncFlags[@]}
+          sf skuid page push ${syncFlags[@]}
 
           if [ ${{ inputs.MODULES }} ]; then
             modules=${{ inputs.MODULES }}
