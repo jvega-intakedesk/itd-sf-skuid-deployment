@@ -57,30 +57,38 @@ runs:
       shell: bash
       run: >
         syncFlags=()
+        defaultSyncFlags=()
 
         if [ ! -z "${{ inputs.TARGET_USERNAME_ALIAS }}" ]; then
-          syncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
+            syncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
+            defaultSyncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
         fi
 
         echo "::debug:: Pages that were changed in this PR"
 
         deploy=false
+        pages=""
         for file in ${{ github.event.pull_request.files.*.filename }}; do
-          if [[ "$file" == *"skuidpages/"* ]]; then
-            echo "::debug:: Page being deployed."
-            syncFlags+=( --page $file )
-            deploy=true
-          fi
+            if [[ "$file" == *"skuidpages/"* ]]; then
+               echo "::debug:: Page being deployed."
+               pages+="$file "
+               deploy=true
+           fi
         done
 
+        echo "::debug::"
         echo "::debug:: Deploying pages."
         echo "::debug:: Has changes to be deployed? $deploy"
+        echo "::debug::"
 
         if [ "$deploy" = "true" ]; then
-          echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
-          sf skuid page push ${syncFlags[@]}
+            syncFlags+=( $pages )
+            echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
+            if ! sf skuid page push ${syncFlags[@]}; then
+                sf skuid page push ${defaultSyncFlags[@]};
+            fi
         else
-          echo "::debug:: No specific changes to deploy. Attempting full deploy."
-          echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
-          sf skuid page push ${syncFlags[@]}
+            echo "::debug:: No specific changes to deploy. Attempting full deploy."
+            echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
+            sf skuid page push ${defaultSyncFlags[@]}
         fi
