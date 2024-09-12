@@ -98,3 +98,5 @@ runs:
             echo "::debug:: No specific changes to deploy. Attempting full deploy."
             echo "::debug:: Command being executed: sf skuid page push ${defaultSyncFlags[@]}"
             sf skuid page push "${defaultSyncFlags[@]}"
+        fi
+
