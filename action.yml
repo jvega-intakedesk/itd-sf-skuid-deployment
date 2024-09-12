@@ -95,8 +95,8 @@ runs:
                 sf skuid page push "${defaultSyncFlags[@]}"
             fi
         else
-            echo "::debug:: No specific changes to deploy. Attempting full deploy."
-            echo "::debug:: Command being executed: sf skuid page push ${defaultSyncFlags[@]}"
-            sf skuid page push "${defaultSyncFlags[@]}"
+            echo "::debug:: No specific changes to deploy."
+            echo "::debug:: A full deploy is not possible because it will pass the max limit of 6 million characters imposed by Salesforce."
+            echo "::debug:: Nothing to deploy."
         fi
 
