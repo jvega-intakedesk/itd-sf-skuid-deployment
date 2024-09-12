@@ -1,12 +1,14 @@
-name: ITD Skuid Pages Sync
-description: Github Action Script to Sync the Skuid Pages between environments
+name: ITD Skuid Pages Deployment
+description: Github Action Script to Deploy the Skuid Pages to a given environment
 author: csilva-intakedesk
 branding:
   icon: terminal
   color: red
 inputs:
   LOG_LEVEL:
-    description: Skuid command flag --loglevel. Logging level for this command invocation. Defaults to Error.
+    description: >-
+      Skuid command flag --loglevel. Logging level for this command invocation.
+      Defaults to Error.
     type: choice
     default: error
     options:
@@ -17,10 +19,14 @@ inputs:
       - error
       - fatal
   TARGET_USERNAME_ALIAS:
-    description: Skuid command flag --targetusername. Username or alias for the target org; overrides default target org set with SF.
+    description: >-
+      Skuid command flag --targetusername. Username or alias for the target org;
+      overrides default target org set with SF.
     type: string
   MODULES:
-    description: The Skuid command flag --modules. It will default to ITD modules. Should be passed separated by comma if more than one.
+    description: >-
+      The Skuid command flag --modules. It will default to ITD modules. Should
+      be passed separated by comma if more than one.
     type: string
   SF_AUTH_URL:
     description: The Salesforce Auth URL
@@ -29,44 +35,60 @@ inputs:
 runs:
   using: composite
   steps:
-      - name: Install Salesforce CLI
-        shell: bash
-        run: |
-          npm install -g @salesforce/cli
-          sf --version
+    - name: Install Salesforce CLI
+      shell: bash
+      run: |
+        npm install -g @salesforce/cli
+        sf version --verbose --json
+    - name: Installing SF Skuid Pages Plugin
+      shell: bash
+      run: |
+        echo y | sf plugins install skuid-sfdx
+        sf plugins
+    - name: Environment Login
+      shell: bash
+      run: >
+        sf org login sfdx-url --set-default --sfdx-url-file <(echo "${{ inputs.SF_AUTH_URL }}")
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: SKUID Pages Deployment
+      shell: bash
+      run: >
+        syncFlags=()
+        defaultSyncFlags=()
 
-      - name: Installing SF Skuid Pages Plugin
-        shell: bash
-        run: |
-          echo y | sf plugins install skuid-sfdx
-          sf plugins
-
-      - name: Environment Login
-        shell: bash
-        run: |
-          sf org login sfdx-url --set-default --sfdx-url-file <(echo "${{ inputs.SF_AUTH_URL }}")
-
-      - name: Syncing Environment Changes
-        shell: bash
-        run: |
-          syncFlags=()
-          if [ ! -z "${{ inputs.TARGET_USERNAME_ALIAS }}" ]; then
+        if [ ! -z "${{ inputs.TARGET_USERNAME_ALIAS }}" ]; then
             syncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
-          fi
+            defaultSyncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
+        fi
 
-          echo "::debug::Syncing the pages with no module."
+        echo "::debug:: Pages that were changed in this PR"
 
-          sf skuid page push ${syncFlags[@]}
+        deploy=false
+        pages=""
+        for file in ${{ github.event.pull_request.files.*.filename }}; do
+            if [[ "$file" == *"skuidpages/"* ]]; then
+               echo "::debug:: Page being deployed."
+               pages+="$file "
+               deploy=true
+           fi
+        done
 
-          if [ ${{ inputs.MODULES }} ]; then
-            modules=${{ inputs.MODULES }}
-            
-            echo "::debug::Syncing the pages for the modules: $modules"
+        echo "::debug::"
+        echo "::debug:: Deploying pages."
+        echo "::debug:: Has changes to be deployed? $deploy"
+        echo "::debug::"
 
-            for i in $(echo $modules | sed "s/,/ /g")
-            do
-                module=$(echo $i | sed 's/_/ /g')
-                echo "::debug::sf skuid page push --module=\"${module}\" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}"
-                sf skuid page push --module="${module}" --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }}
-            done
-          fi
+        if [ "$deploy" = "true" ]; then
+            syncFlags+=( $pages )
+            echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
+            if ! sf skuid page push ${syncFlags[@]}; then
+                sf skuid page push ${defaultSyncFlags[@]};
+            fi
+        else
+            echo "::debug:: No specific changes to deploy. Attempting full deploy."
+            echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
+            sf skuid page push ${defaultSyncFlags[@]}
+        fi
