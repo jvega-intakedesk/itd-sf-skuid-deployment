@@ -68,8 +68,7 @@ runs:
 
         deploy=false
         pages=""
-        for file in ${{ github.event.pull_request.files.*.filename }}
-        do
+        for file in ${{ github.event.pull_request.files.*.filename }}; do
             if [[ "$file" == *"skuidpages/"* ]]; then
                echo "::debug:: Page being deployed."
                pages+="$file "
