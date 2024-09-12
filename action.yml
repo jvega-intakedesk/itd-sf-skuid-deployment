@@ -4,9 +4,10 @@ author: csilva-intakedesk
 branding:
   icon: terminal
   color: red
+
 inputs:
   LOG_LEVEL:
-    description: >-
+    description: >
       Skuid command flag --loglevel. Logging level for this command invocation.
       Defaults to Error.
     type: choice
@@ -19,12 +20,12 @@ inputs:
       - error
       - fatal
   TARGET_USERNAME_ALIAS:
-    description: >-
+    description: >
       Skuid command flag --targetusername. Username or alias for the target org;
       overrides default target org set with SF.
     type: string
   MODULES:
-    description: >-
+    description: >
       The Skuid command flag --modules. It will default to ITD modules. Should
       be passed separated by comma if more than one.
     type: string
@@ -32,6 +33,7 @@ inputs:
     description: The Salesforce Auth URL
     type: string
     required: true
+
 runs:
   using: composite
   steps:
@@ -40,41 +42,45 @@ runs:
       run: |
         npm install -g @salesforce/cli
         sf version --verbose --json
+
     - name: Installing SF Skuid Pages Plugin
       shell: bash
       run: |
         echo y | sf plugins install skuid-sfdx
         sf plugins
+
     - name: Environment Login
       shell: bash
-      run: >
+      run: |
         sf org login sfdx-url --set-default --sfdx-url-file <(echo "${{ inputs.SF_AUTH_URL }}")
+
     - name: Checkout source code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
     - name: SKUID Pages Deployment
       shell: bash
-      run: >
+      run: |
         syncFlags=()
         defaultSyncFlags=()
 
         if [ ! -z "${{ inputs.TARGET_USERNAME_ALIAS }}" ]; then
-            syncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
-            defaultSyncFlags+=( --targetusername=${{ inputs.TARGET_USERNAME_ALIAS }} )
+            syncFlags+=( --targetusername="${{ inputs.TARGET_USERNAME_ALIAS }}" )
+            defaultSyncFlags+=( --targetusername="${{ inputs.TARGET_USERNAME_ALIAS }}" )
         fi
 
         echo "::debug:: Pages that were changed in this PR"
 
         deploy=false
         pages=""
-        for file in ${{ github.event.pull_request.files.*.filename }}
-        do
+
+        for file in "${{ github.event.pull_request.files.*.filename }}"; do
             if [[ "$file" == *"skuidpages/"* ]]; then
-               echo "::debug:: Page being deployed."
-               pages+="$file "
-               deploy=true
-           fi
+                echo "::debug:: Page being deployed."
+                pages+="$file "
+                deploy=true
+            fi
         done
 
         echo "::debug::"
@@ -82,14 +88,13 @@ runs:
         echo "::debug:: Has changes to be deployed? $deploy"
         echo "::debug::"
 
-        if [ "$deploy" = "true" ]; then
-            syncFlags+=( $pages )
+        if [ "$deploy" = true ]; then
+            syncFlags+=($pages)
             echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
-            if ! sf skuid page push ${syncFlags[@]}; then
-                sf skuid page push ${defaultSyncFlags[@]};
+            if ! sf skuid page push "${syncFlags[@]}"; then
+                sf skuid page push "${defaultSyncFlags[@]}"
             fi
         else
             echo "::debug:: No specific changes to deploy. Attempting full deploy."
-            echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
-            sf skuid page push ${defaultSyncFlags[@]}
-        fi
+            echo "::debug:: Command being executed: sf skuid page push ${defaultSyncFlags[@]}"
+            sf skuid page push "${defaultSyncFlags[@]}"
