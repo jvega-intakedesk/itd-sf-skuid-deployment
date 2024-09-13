@@ -1,5 +1,5 @@
 name: ITD Skuid Pages Deployment
-description: Github Action Script to Deploy the Skuid Pages to a given environment
+description: GitHub Action Script to Deploy the Skuid Pages to a given environment
 author: csilva-intakedesk
 branding:
   icon: terminal
@@ -59,10 +59,9 @@ runs:
       with:
         fetch-depth: 0
 
-    steps:
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v45.0.1
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v45.0.1
 
     - name: SKUID Pages Deployment
       env:
@@ -77,21 +76,25 @@ runs:
             defaultSyncFlags+=( --targetusername="${{ inputs.TARGET_USERNAME_ALIAS }}" )
         fi
 
-        echo "::debug:: Pages that were changed in this PR"
+        echo "::debug:: Pages that were changed in this PR: ${ALL_CHANGED_FILES}"
 
         deploy=false
         pages=""
 
+        # Ensure the script does not exit on error
         set +e
+
+        # Iterate over each changed file
+        IFS=$'\n'
         for file in ${ALL_CHANGED_FILES}; do
-            echo "$file"
+            echo "Processing file: $file"
             if [[ "$file" == *"skuidpages/"* ]]; then
-                echo "::debug:: Page being deployed."
+                echo "::debug:: Page being deployed: $file"
                 pages+="$file "
                 deploy=true
             fi
         done
-        echo -e
+        set -e
 
         echo "::debug::"
         echo "::debug:: Deploying pages."
@@ -99,14 +102,13 @@ runs:
         echo "::debug::"
 
         if [ "$deploy" = true ]; then
-            syncFlags+=($pages)
-            echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]}"
-            if ! sf skuid page push "${syncFlags[@]}"; then
-                sf skuid page push "${defaultSyncFlags[@]}"
+            echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]} $pages"
+            if ! sf skuid page push "${syncFlags[@]}" $pages; then
+                echo "Initial deploy failed. Attempting with default flags."
+                sf skuid page push "${defaultSyncFlags[@]}" $pages
             fi
         else
             echo "::debug:: No specific changes to deploy."
             echo "::debug:: A full deploy is not possible because it will pass the max limit of 6 million characters imposed by Salesforce."
             echo "::debug:: Nothing to deploy."
         fi
-
