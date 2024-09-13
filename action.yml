@@ -59,7 +59,14 @@ runs:
       with:
         fetch-depth: 0
 
+    steps:
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45.0.1
+
     - name: SKUID Pages Deployment
+      env:
+        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
       shell: bash
       run: |
         syncFlags=()
@@ -76,18 +83,15 @@ runs:
         pages=""
 
         set +e
-        for file in "${{ github.event.pull_request.files.*.filename }}"; do
-            for element in "${file[@]}"; do
-              echo "array structure element - $element"
-            done
-
+        for file in ${ALL_CHANGED_FILES}; do
+            echo "$file"
             if [[ "$file" == *"skuidpages/"* ]]; then
                 echo "::debug:: Page being deployed."
                 pages+="$file "
                 deploy=true
             fi
         done
-        set -e
+        echo -e
 
         echo "::debug::"
         echo "::debug:: Deploying pages."
