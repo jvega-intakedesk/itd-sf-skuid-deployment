@@ -76,7 +76,11 @@ runs:
         pages=""
 
         for file in "${{ github.event.pull_request.files.*.filename }}"; do
+            echo "$file"
+            echo ""
             if [[ "$file" == *"skuidpages/"* ]]; then
+                echo "Page being deployed $file"
+                echo ""
                 echo "::debug:: Page being deployed."
                 pages+="$file "
                 deploy=true
