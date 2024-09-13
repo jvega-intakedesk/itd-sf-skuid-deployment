@@ -75,9 +75,10 @@ runs:
         deploy=false
         pages=""
 
+        set +e
         for file in "${{ github.event.pull_request.files.*.filename }}"; do
             for element in "${file[@]}"; do
-              echo "::debug:: array structure element - $element"
+              echo "array structure element - $element"
             done
 
             if [[ "$file" == *"skuidpages/"* ]]; then
@@ -86,6 +87,7 @@ runs:
                 deploy=true
             fi
         done
+        set -e
 
         echo "::debug::"
         echo "::debug:: Deploying pages."
