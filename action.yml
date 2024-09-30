@@ -101,12 +101,16 @@ runs:
         echo "::debug:: Has changes to be deployed? $deploy"
         echo "::debug::"
 
+        echo "Current working directory: $(pwd)"
+
         if [ "$deploy" = true ]; then
             echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]} $pages"
 
             for page in $pages; do
                 echo "::debug:: Deploying page individually: $page"
                 echo "sf skuid page push \"${syncFlags[@]}\" --dir \"./$page\""
+                echo "Deploying file path: ./\"$page\""
+
                 sf skuid page push "${syncFlags[@]}" --dir "./$page"
             done
         else
