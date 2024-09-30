@@ -106,8 +106,8 @@ runs:
 
             for page in $pages; do
                 echo "::debug:: Deploying page individually: $page"
-                echo "sf skuid page push \"${syncFlags[@]}\" --dir \"$page\""
-                sf skuid page push "${syncFlags[@]}" --dir "$page"
+                echo "sf skuid page push \"${syncFlags[@]}\" --dir \"./$page\""
+                sf skuid page push "${syncFlags[@]}" --dir "./$page"
             done
         else
             echo "::debug:: No specific changes to deploy."
