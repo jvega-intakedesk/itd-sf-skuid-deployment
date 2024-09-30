@@ -86,7 +86,7 @@ runs:
         IFS=$'\n'
 
         # Split ALL_CHANGED_FILES into an array
-        IFS=' ' read -r -a files_array <<< "$ALL_CHANGED_FILES"
+        read -r -a files_array <<< "$ALL_CHANGED_FILES"
         
         for file in "${files_array[@]}"; do
             echo "Processing file: $file"
@@ -107,7 +107,6 @@ runs:
             echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]} $pages"
 
             for page in $pages; do
-                page="${page#skuidpages/}"
                 echo "::debug:: Deploying page individually: $page"
                 echo "sf skuid page push \"${syncFlags[@]}\" --dir \"$page\""
                 sf skuid page push "${syncFlags[@]}" --dir $page
