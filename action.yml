@@ -107,7 +107,7 @@ runs:
             # Loop through each page and push them one by one
             for page in "${pages[@]}"; do
                 # Check if the file exists in the current working directory
-                if [ -f "./$page" ]; then
+                if [ -f "/skuidpages/$page" ]; then
                     echo "::debug:: Deploying page individually: $page"
                     # Use the page directly without asterisks
                     echo "sf skuid page push ${syncFlags[@]} /skuidpages/$page"  # Debug output with the page name
