@@ -77,23 +77,24 @@ runs:
         echo "::debug:: Pages that were changed in this PR: ${ALL_CHANGED_FILES}"
 
         deploy=false
-        pages=""
+        declare -a pages=()  # Create an array to store individual page file paths
 
         # Ensure the script does not exit on error
         set +e
 
-        # Split ALL_CHANGED_FILES into an array
-        # Set IFS to handle both spaces and newlines
-        IFS=$'\n' read -r -d '' -a files_array <<< "$(echo -e "$ALL_CHANGED_FILES" | tr -s ' ')"
-        
+        # Split ALL_CHANGED_FILES into an array using newline as delimiter
+        IFS=' ' read -r -a files_array <<< "$ALL_CHANGED_FILES"
+
+        # Iterate over each changed file
         for file in "${files_array[@]}"; do
             echo "Processing file: $file"
             if [[ "$file" == *"skuidpages/"* ]]; then
                 echo "::debug:: Page being deployed: $file"
-                pages+="$file "
+                pages+=("$file")  # Add each valid page to the pages array
                 deploy=true
             fi
         done
+
         set -e
 
         echo "::debug::"
@@ -101,17 +102,16 @@ runs:
         echo "::debug:: Has changes to be deployed? $deploy"
         echo "::debug::"
 
-        echo "Current working directory: $(pwd)"
-
         if [ "$deploy" = true ]; then
-            echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]} $pages"
-
-            for page in $pages; do
+            echo "Current working directory: $(pwd)"
+            # Loop through each page and push them one by one
+            for page in "${pages[@]}"; do
+                page=$(echo "$page" | xargs)  # Trim whitespace
                 echo "::debug:: Deploying page individually: $page"
-                echo "sf skuid page push \"${syncFlags[@]}\" --dir \"./$page\""
-                echo "Deploying file path: ./\"$page\""
-
-                sf skuid page push "${syncFlags[@]}" --dir "./$page"
+                full_path="$(pwd)/$page"  # Get the absolute path
+                echo "Deploying file path: $full_path"
+                echo "sf skuid page push ${syncFlags[@]} --dir \"$full_path\""
+                sf skuid page push "${syncFlags[@]}" --dir "$full_path"  # Use absolute path
             done
         else
             echo "::debug:: No specific changes to deploy."
