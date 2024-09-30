@@ -82,11 +82,9 @@ runs:
         # Ensure the script does not exit on error
         set +e
 
-        # Iterate over each changed file
-        IFS=$'\n'
-
         # Split ALL_CHANGED_FILES into an array
-        read -r -a files_array <<< "$ALL_CHANGED_FILES"
+        # Set IFS to handle both spaces and newlines
+        IFS=$'\n' read -r -d '' -a files_array <<< "$(echo -e "$ALL_CHANGED_FILES" | tr -s ' ')"
         
         for file in "${files_array[@]}"; do
             echo "Processing file: $file"
@@ -109,7 +107,7 @@ runs:
             for page in $pages; do
                 echo "::debug:: Deploying page individually: $page"
                 echo "sf skuid page push \"${syncFlags[@]}\" --dir \"$page\""
-                sf skuid page push "${syncFlags[@]}" --dir $page
+                sf skuid page push "${syncFlags[@]}" --dir "$page"
             done
         else
             echo "::debug:: No specific changes to deploy."
