@@ -69,7 +69,6 @@ runs:
       shell: bash
       run: |
         syncFlags=()
-        syncFlags+=( -d="skuidpages" )
 
         if [ ! -z "${{ inputs.TARGET_USERNAME_ALIAS }}" ]; then
             syncFlags+=( --targetusername="${{ inputs.TARGET_USERNAME_ALIAS }}" )
@@ -110,7 +109,8 @@ runs:
             for page in $pages; do
                 page="${page#skuidpages/}"
                 echo "::debug:: Deploying page individually: $page"
-                sf skuid page push "${syncFlags[@]}" $page
+                echo "sf skuid page push \"${syncFlags[@]}\" --dir \"$page\""
+                sf skuid page push "${syncFlags[@]}" --dir $page
             done
         else
             echo "::debug:: No specific changes to deploy."
