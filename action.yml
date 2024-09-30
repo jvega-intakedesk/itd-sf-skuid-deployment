@@ -97,8 +97,6 @@ runs:
             fi
         done
 
-        set -e
-
         echo "::debug::"
         echo "::debug:: Deploying pages."
         echo "::debug:: Has changes to be deployed? $deploy"
@@ -123,3 +121,5 @@ runs:
             echo "::debug:: A full deploy is not possible because it will pass the max limit of 6 million characters imposed by Salesforce."
             echo "::debug:: Nothing to deploy."
         fi
+
+        set -e
