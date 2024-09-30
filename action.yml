@@ -82,7 +82,7 @@ runs:
         # Ensure the script does not exit on error
         set +e
 
-        # Split ALL_CHANGED_FILES into an array using newline as delimiter
+        # Split ALL_CHANGED_FILES into an array using space as delimiter
         IFS=' ' read -r -a files_array <<< "$ALL_CHANGED_FILES"
 
         # Iterate over each changed file
@@ -90,7 +90,9 @@ runs:
             echo "Processing file: $file"
             if [[ "$file" == *"skuidpages/"* ]]; then
                 echo "::debug:: Page being deployed: $file"
-                pages+=("$file")  # Add each valid page to the pages array
+                # Extract the file name without the directory prefix
+                filename="${file##*/}"  # Get the file name from the path
+                pages+=("$filename")  # Add each valid page to the pages array
                 deploy=true
             fi
         done
@@ -106,12 +108,9 @@ runs:
             echo "Current working directory: $(pwd)"
             # Loop through each page and push them one by one
             for page in "${pages[@]}"; do
-                page=$(echo "$page" | xargs)  # Trim whitespace
                 echo "::debug:: Deploying page individually: $page"
-                full_path="$(pwd)/$page"  # Get the absolute path
-                echo "Deploying file path: $full_path"
-                echo "sf skuid page push ${syncFlags[@]} --dir \"$full_path\""
-                sf skuid page push "${syncFlags[@]}" --dir "$full_path"  # Use absolute path
+                echo "sf skuid page push ${syncFlags[@]} \"$page\""
+                sf skuid page push "${syncFlags[@]}" "$page"  # Use only the filename
             done
         else
             echo "::debug:: No specific changes to deploy."
