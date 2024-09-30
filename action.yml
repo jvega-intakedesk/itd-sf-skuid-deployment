@@ -110,10 +110,10 @@ runs:
                 if [ -f "./$page" ]; then
                     echo "::debug:: Deploying page individually: $page"
                     # Use the page directly without asterisks
-                    echo "sf skuid page push ${syncFlags[@]} $page"  # Debug output with the page name
-                    sf skuid page push "${syncFlags[@]}" "$page"  # Use the page name without wildcards
+                    echo "sf skuid page push ${syncFlags[@]} /skuidpages/$page"  # Debug output with the page name
+                    sf skuid page push "${syncFlags[@]}" "/skuidpages/$page"  # Use the page name without wildcards
                 else
-                    echo "::debug:: File does not exist: $page"
+                    echo "File does not exist: /skuidpages/$page"
                 fi
             done
         else
