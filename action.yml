@@ -107,10 +107,14 @@ runs:
 
         if [ "$deploy" = true ]; then
             echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]} $pages"
-            if ! sf skuid page push "${syncFlags[@]}" $pages; then
-                echo "Initial deploy failed. Attempting with default flags."
-                sf skuid page push "${defaultSyncFlags[@]}" $pages
-            fi
+
+            for page in $pages; do
+                echo "::debug:: Deploying page individually: $page"
+                if ! sf skuid page push "${syncFlags[@]}" $page; then
+                    echo "Initial deploy failed. Attempting with default flags."
+                    sf skuid page push "${defaultSyncFlags[@]}" $page
+                fi
+            done
         else
             echo "::debug:: No specific changes to deploy."
             echo "::debug:: A full deploy is not possible because it will pass the max limit of 6 million characters imposed by Salesforce."
