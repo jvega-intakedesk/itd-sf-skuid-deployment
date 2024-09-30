@@ -108,9 +108,12 @@ runs:
             echo "Current working directory: $(pwd)"
             # Loop through each page and push them one by one
             for page in "${pages[@]}"; do
+                # Extract a unique part of the filename for compacting (before the extension)
+                unique_name="${page%.*}"  # Get the name without the extension
                 echo "::debug:: Deploying page individually: $page"
-                echo "sf skuid page push ${syncFlags[@]} \"$page\""
-                sf skuid page push "${syncFlags[@]}" "$page"  # Use only the filename
+                compact_name="*${unique_name}*"  # Create the compact name pattern
+                echo "sf skuid page push ${syncFlags[@]} $compact_name"  # Debug output with compact name
+                sf skuid page push "${syncFlags[@]}" $compact_name  # Use the compact name
             done
         else
             echo "::debug:: No specific changes to deploy."
