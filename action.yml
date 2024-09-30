@@ -69,11 +69,10 @@ runs:
       shell: bash
       run: |
         syncFlags=()
-        defaultSyncFlags=()
+        syncFlags+=( -d="skuidpages" )
 
         if [ ! -z "${{ inputs.TARGET_USERNAME_ALIAS }}" ]; then
             syncFlags+=( --targetusername="${{ inputs.TARGET_USERNAME_ALIAS }}" )
-            defaultSyncFlags+=( --targetusername="${{ inputs.TARGET_USERNAME_ALIAS }}" )
         fi
 
         echo "::debug:: Pages that were changed in this PR: ${ALL_CHANGED_FILES}"
@@ -109,11 +108,9 @@ runs:
             echo "::debug:: Command being executed: sf skuid page push ${syncFlags[@]} $pages"
 
             for page in $pages; do
+                page="${page#skuidpages/}"
                 echo "::debug:: Deploying page individually: $page"
-                if ! sf skuid page push "${syncFlags[@]}" $page; then
-                    echo "Initial deploy failed. Attempting with default flags."
-                    sf skuid page push "${defaultSyncFlags[@]}" $page
-                fi
+                sf skuid page push "${syncFlags[@]}" $page
             done
         else
             echo "::debug:: No specific changes to deploy."
