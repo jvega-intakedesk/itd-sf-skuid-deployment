@@ -1,3 +1,37 @@
+"""
+skuid_pages_deployer.py
+
+This module provides a class for deploying Skuid pages to a Salesforce 
+environment. The `SkuidPagesDeployer` class includes methods for handling 
+the deployment process, managing API interactions with Salesforce, and 
+logging the results of deployments.
+
+Dependencies:
+- requests: For making HTTP requests to the Salesforce API.
+- os: For accessing environment variables.
+- json: For handling JSON data.
+- time: For implementing delays during deployment retries.
+
+Usage Example:
+    from skuid_pages_deployer import SkuidPagesDeployer
+
+    # Create an instance of SkuidPagesDeployer
+    deployer = SkuidPagesDeployer()
+
+    # Deploy a specific Skuid page
+    deployer.deploy_page(page='example_page')
+
+    # Check the status of a deployment
+    deployer.check_deployment_status(deployment_id='12345')
+
+    # Handle potential errors during deployment
+    try:
+        deployer.deploy_page(page='error_page')
+    except Exception as e:
+        print(f"Deployment failed: {e}")
+
+"""
+
 import os
 import subprocess
 import queue

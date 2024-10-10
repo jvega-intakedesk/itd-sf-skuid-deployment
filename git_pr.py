@@ -1,3 +1,37 @@
+"""
+git_pr.py
+
+This module provides a class for managing GitHub Pull Requests (PRs).
+The `GitPR` class includes methods for creating branches, getting commit 
+details, creating revert commits, and creating pull requests for reverting 
+previous merges.
+
+Dependencies:
+- requests: For making HTTP requests to the GitHub API.
+- os: For accessing environment variables.
+
+Usage Example:
+    from git_pr import GitPR
+
+    # Create an instance of GitPR
+    git_pr = GitPR()
+
+    # Create a new branch based on an existing branch
+    git_pr.create_branch(base_branch='main', new_branch_name='feature-branch')
+
+    # Get details of a specific commit
+    commit_details = git_pr.get_commit(commit_sha='abcd1234')
+
+    # Create a revert commit for a given merge commit
+    revert_sha = git_pr.create_revert_commit(merge_commit=commit_details)
+
+    # Create a pull request for the revert commit
+    git_pr.create_pull_request(new_branch_name='revert-branch', 
+                                base_branch='main', 
+                                revert_message='Revert previous merge commit.')
+
+"""
+
 import os
 import requests
 
