@@ -43,7 +43,7 @@ class GitPR:
     headers = {}
 
     def __init__(self) -> None:
-        self.token = os.getenv("GITHUB_TOKEN")
+        self.token = os.getenv("GH_TOKEN")
         self.repo_owner = os.getenv("REPO_OWNER")
         self.repo_name = os.getenv("REPO_NAME")
         self.commit_sha = os.getenv("COMMIT_SHA")
