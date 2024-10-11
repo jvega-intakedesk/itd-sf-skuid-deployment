@@ -9,7 +9,7 @@ logging the results of deployments.
 Dependencies:
 - requests: For making HTTP requests to the Salesforce API.
 - os: For accessing environment variables.
-- json: For handling JSON data.
+- subprocess: For executing the sales force skuid plugin
 - time: For implementing delays during deployment retries.
 
 Usage Example:

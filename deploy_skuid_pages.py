@@ -1,13 +1,22 @@
 """
 deploy_skuid_pages.py
 
-This module contains the SkuidPagesDeployer class, which is responsible for
-deploying Skuid pages to a GitHub repository. It handles operations such as 
-creating branches, commits, and pull requests for reverting changes.
+This module contains the SkuidPagesDeployer and the GitPR classes. The first is responsible for deploying pages to a 
+Salesforce environment using the Saleforce Skuid Plugin. The latter is responsible for creating a PR of the 
+current commit being merged into the main branch  in cases where a failure occurred.
+
+Dependencies:
+- requests: For making HTTP requests to the Salesforce API.
+- os: For accessing environment variables.
+- subprocess: For executing the sales force skuid plugin
+- time: For implementing delays during deployment retries.
 
 Usage:
-    deployer = SkuidPagesDeployer(token="your_token", repo_owner="owner", repo_name="repo")
-    deployer.deploy_page(page="your_page")
+    try:
+        (SkuidPagesDeployer()).deploy()
+    except Exception as e:
+        print(f"Error occurred: {e}. Creating a revert PR...")
+        (GitPR()).revert()
 """
 
 import os
