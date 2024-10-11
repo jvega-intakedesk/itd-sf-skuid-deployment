@@ -64,6 +64,10 @@ runs:
       uses: tj-actions/changed-files@v45.0.1
 
     - name: SKUID Pages Deployment
+      permissions:
+        contents: write  # Required for branch creation and commits
+        pull-requests: write  # Required for creating a PR
+        actions: read #This allows accessing metadata about the workflow and repository.
       shell: bash
       env:
         ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
