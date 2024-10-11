@@ -64,6 +64,7 @@ runs:
       uses: tj-actions/changed-files@v45.0.1
 
     - name: List Files for Debugging
+      shell: bash
       run: ls -R /home/runner/work/itd-sf/itd-sf
 
     - name: SKUID Pages Deployment
