@@ -31,7 +31,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - name: Deploy
         uses: intakedesk/skuid-sync-action@v1.0
         with:
